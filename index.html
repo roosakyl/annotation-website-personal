@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Annotointisivusto</title>
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+    crossorigin="anonymous">
+  <link rel="stylesheet" href="index.css">
+  <script defer src="https://unpkg.com/vue"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/vue-resource"></script>
+  <script defer src="app.js"></script>
+</head>
+
+<body>
+
+  <div class="wrapper container pt-4" id="app">
+
+      <div v-if="seen" class="sidenav">
+          <a href="#" @click.prevent="active_page = 1">Etusivu</a>
+          <a href="#services">Tekstipaketit</a>
+          <a href="#clients">Lisää projektista</a>
+          <a href="#contact">Contact</a>
+          <button v-if="seen" v-on:click="seen = !seen">Piilota menu!</button>
+        </div>
+      <button class="menubutton" v-if="!seen" v-on:click="seen = !seen">Näytä menu!</button>
+
+    <div class="page" v-if="active_page === 1" :class="{page_active: active_page === 1, page_left: active_page > 1}" id="instructions">
+
+      <div class="introtext">
+
+        <div>
+
+          <div class="circle">
+              <img id="introimage" src="images/plan.svg"/>
+
+          </div>
+
+          <h1 class="text-center">ANNOTOINTITEHTÄVÄ</h1>
+
+          </div>
+
+        <p>
+          Tälle sivulle on poimittu satunnaisesti 75 tekstiä Finnish Internet Parsebankista. Parsebank on massiivinen, tekoälyn avulla
+          morfologisesti ja syntaktisesti annotoitu kielikorpus, joka koostuu suomenkielisiltä verkkosivuilta poimituista
+          teksteistä. Eräs Parsebankin tavoitteista on luokitella sen sisältämät tekstit mielekkäisiin alakategorioihin.
+          Yhdysvaltalainen lingvisti Douglas Biber on esittänyt Internet-genrejen taksonomian, jota käytämme tämän tehtävän
+          runkona. Antamiasi vastauksia käytetään apuna, jotta voidaan arvioida Biberin taksonomian soveltuvuutta Parsebankin
+          luokittelussa.
+        </p>
+        <p>
+          Lisätietoa Parsebankista:
+          <a href="http://bionlp.utu.fi/finnish-internet-parsebank.html">http://bionlp.utu.fi/finnish-internet-parsebank.html</a>
+        </p>
+        <ul>
+          <li>
+            Kirjoita aluksi nimesi alempana olevaan kenttään. Tarkastele sitten jokaista tekstiä, ja valitse kullekin mielestäsi
+            <b>parhaiten kuvaava rekisteri/genre</b>
+            ensimmäisestä (=vasemmasta, tai ylimmästä jos selainikkunasi koko on skaalattu hyvin kapeaksi) pudotusvalikosta. Jokaisen
+            tekstin URL-bodyurl on annettu; voit lisäkontekstia halutessasi vilkaista, onko alkuperäinen verkkosivu vielä
+            olemassa Internetissä. Esimerkiksi keskustelufoorumi-tyyppisten tekstien alkuperäinen asettelu verkkosivulla
+            on Parsebankiin tallennuksen yhteydessä usein hävinnyt.
+          </li>
+          <li>Jos teksti vaikuttaa selvästi sopivan kahteen eri rekisteriin, voit valita lisärekisterin toisesta pudotusvalikosta.</li>
+          <li>Jos tekstin rekisterin tunnistamisessa on huomattavaa epäselvyyttä, tai teksti tuntuu sopivan useaan eri kategoriaan,
+            klikkaa
+            <b>Epävarma-valintaruutua</b>. Valitse tässäkin tapauksessa tekstille jokin rekisteri; tärkeintä on, että valittu
+            rekisteri kuvaa tekstiä edes jollain tavalla. Muista, että tämä luokittelumalli ei suinkaan ole täydellinen!
+            Yhtenä päämääränä onkin juuri selvittää, mistä annotoijat ovat eri mieltä.
+          </li>
+          <li>Mikäli tekstissä on taas huomattava määrä vierasta kieltä (ei vaan esim. erisnimiä, vaan kokonaisia virkkeitä),
+            klikkaa Vierasta kieltä -valintaruutua.</li>
+          <li>Jos taas tekstissä on huomattava määrä erikoismerkkejä (¤,%,# jne.), klikkaa Erikoismerkkejä-valintaruutua.</li>
+          <li>Kun olet annotoinut kaikki tekstit, voit poistua sivustolta. Vastauksesi tallentuvat automaattisesti sitä mukaa
+            kun annotoit, ja sivusto muistaa jo tekemäsi annotaatiot, mikäli klikkaat itsesi vahingossa pois sivustolta.</li>
+        </ul>
+
+        <div class="text-center">
+        <p>
+          <b>Hauskaa annotointia!</b>
+        </p>
+
+        <p>Kirjoita nimesi muodossa
+          <i>Sukunimi Etunimi</i>. Sivusto muistaa edelliset annotointisi, mutta vain siinä tapauksessa, että kirjoitat nimesi
+          myös ensi kerralla täsmälleen samalla tavalla kuin edellisellä kerralla.
+        </p>
+        <div>
+          <input type="text" v-model="username" class="form-control mb-3" placeholder="Oma nimi" id="nameinputfield">
+          <div class="btn btn-success" @click="annotateSet">Seuraava</div>
+          <div class="btn btn-success" @click="fetchUnclearTexts">Nouda epävarmat</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- this section will be re rendered when texts are fetched -->
+    <div class="page" v-bind:key="textsfetched" v-if="active_page === 2" :class="{page_active: active_page === 2, page_right: active_page > 2, page_left: active_page < 2}">
+      <div class="text_wrapper" v-for="text in texts">
+
+        <div class="annotation-text">
+
+            <div class="doc_id">Tekstin ID: {{text.body.id}} </div>
+
+          <div class="textbody">{{text.body.text}}</div>
+
+          <div class="document_footer mt-4">
+
+              <div>Vieraile sivustolla:
+                <a v-bind:href="text.text_url" target="_blank"> {{text.text_url}} </a>
+              </div>
+    
+              <div class="select_wrapper">
+    
+                <dropdown :doctext="text.body.text" :docid="text.doc_id" :bodyurl="text.text_url" :old-value="values[text.text_id]" :category_index="1" :data="choices"
+                  :index="text.text_id" v-on:data="handleData"></dropdown>
+                <dropdown :doctext="text.body.text" :docid="text.doc_id" :bodyurl="text.text_url" :old-value="values[text.text_id]" :category_index="2" :data="choices"
+                  :index="text.text_id" v-on:data="handleData"></dropdown>
+    
+              </div>
+    
+              <div class="button-wrapper">
+                <custom-checkbox id="unclear" v-bind:index="text.text_id" v-on:data="handleData" v-bind:old-value="values[text.text_id]"></custom-checkbox>
+                <label>Epävarma</label>
+              </div>
+              <div class="button-wrapper">
+    
+                <custom-checkbox id="comments" v-bind:index="text.text_id" v-on:data="handleData" v-bind:old-value="values[text.text_id]"></custom-checkbox>
+                <label>Paljon kommentteja</label>
+    
+              </div>
+              <div class="button-wrapper">
+    
+                <custom-checkbox id="foreignlang" v-bind:index="text.text_id" v-on:data="handleData" v-bind:old-value="values[text.text_id]"></custom-checkbox>
+                <label>Vierasta kieltä</label>
+              </div>
+    
+              <div class="button-wrapper">
+    
+                <custom-checkbox id="specialchar" v-bind:index="text.text_id" v-on:data="handleData" v-bind:old-value="values[text.text_id]"></custom-checkbox>
+                <label>Erikoismerkkejä</label>
+              </div>
+
+              <div class="button-wrapper">
+    
+                  <custom-checkbox id="untypical" v-bind:index="text.text_id" v-on:data="handleData" v-bind:old-value="values[text.text_id]"></custom-checkbox>
+                  <label>Epätyypillinen tekstilajissaan</label>
+                </div>
+                
+              </div>
+
+        </div>
+
+        </div>
+        <my-button class="bottomright">Takaisin</my-button>
+      </div>
+  </div>
+
+  <p class="text-center"><a href="https://www.toptal.com/designers/subtlepatterns/seigaiha/">Background Pattern from Toptal.com</a></p>
+</body>
+
+</html>
