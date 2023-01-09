@@ -1,2 +1,2 @@
 # annotation-website-personal
-A personal repository for developing the annotation website
+A simple website that allows the users to annotate text samples in appropriate categories. Uses VueJS.
